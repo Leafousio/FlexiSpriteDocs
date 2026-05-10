@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlexiSprite: Animated Sprite Shaders 2D | Leafo Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg-deep: #1a1c22;
+    --bg-main: #1f2128;
+    --bg-card: #272a33;
+    --bg-card-hover: #2e3240;
+    --bg-code: #22242b;
+    --bg-elevated: #2c2f3a;
+    --border: #363944;
+    --border-subtle: #2d3039;
+    --text-primary: #eaecf2;
+    --text-secondary: #a5a9ba;
+    --text-muted: #6e7284;
+    --accent: #7ba4ff;
+    --accent-soft: #5b87e8;
+    --accent-glow: rgba(123, 164, 255, 0.1);
+    --green: #6dd89e;
+    --green-soft: rgba(109, 216, 158, 0.12);
+    --yellow: #f5d76e;
+    --yellow-soft: rgba(245, 215, 110, 0.1);
+    --red: #f47c7c;
+    --red-soft: rgba(244, 124, 124, 0.1);
+    --purple: #c49bff;
+    --cyan: #72d8d0;
+    --orange: #f5a66e;
+    --peach: #f5c49b;
+    --font-body: 'Nunito', sans-serif;
+    --font-mono: 'Fira Code', monospace;
+    --sidebar-w: 270px;
+    --header-h: 56px;
+    --radius: 10px;
+    --radius-sm: 6px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-h) + 24px);
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    line-height: 1.7;
+    font-weight: 500;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--accent); color: #fff; }
+a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
+a:hover { color: #9dbdff; }
+code { font-family: var(--font-mono); font-size: 13px; background: var(--bg-code); padding: 2px 7px; border-radius: 4px; color: var(--peach); }
+
+/* ═══════════ HEADER ═══════════ */
+.site-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    background: rgba(26, 28, 34, 0.88);
+    backdrop-filter: blur(18px) saturate(1.3);
+    -webkit-backdrop-filter: blur(18px) saturate(1.3);
+    border-bottom: 1px solid var(--border-subtle);
+    z-index: 100;
+    display: flex; align-items: center; padding: 0 24px;
+}
+
+.header-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 800; font-size: 15px; color: var(--text-primary);
+    white-space: nowrap; letter-spacing: -0.2px;
+}
+
+.header-logo .leaf { font-size: 18px; }
+
+.header-links {
+    margin-left: auto;
+    display: flex; gap: 6px; align-items: center;
+}
+
+.header-links a {
+    font-size: 13px; font-weight: 600;
+    color: var(--text-secondary);
+    padding: 6px 14px; border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+.header-links a:hover { color: var(--text-primary); background: var(--bg-card); }
+
+.header-links .cta {
+    background: linear-gradient(135deg, var(--accent-soft), var(--purple));
+    color: #fff;
+}
+.header-links .cta:hover { filter: brightness(1.1); color: #fff; }
+
+/* ═══════════ SIDEBAR ═══════════ */
+.sidebar {
+    position: fixed; top: var(--header-h); left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--bg-main);
+    border-right: 1px solid var(--border-subtle);
+    overflow-y: auto; padding: 20px 0; z-index: 90;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.sidebar-section { padding: 0 14px; margin-bottom: 4px; }
+
+.sidebar-section-title {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-muted); padding: 10px 10px 5px;
+}
+
+.sidebar-link {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 12px; font-size: 13px; font-weight: 500;
+    color: var(--text-secondary); border-radius: var(--radius-sm);
+    transition: all 0.15s; cursor: pointer;
+}
+.sidebar-link:hover { color: var(--text-primary); background: var(--bg-card); }
+.sidebar-link.active { color: var(--accent); background: var(--accent-glow); font-weight: 700; }
+.sidebar-link .icon { font-size: 12px; width: 18px; text-align: center; opacity: 0.6; }
+
+/* ═══════════ CONTENT ═══════════ */
+.content {
+    margin-left: var(--sidebar-w);
+    margin-top: var(--header-h);
+    max-width: 1080px;
+    padding: 40px 64px 120px;
+}
+
+/* ═══════════ HERO ═══════════ */
+.hero { padding: 48px 0 40px; margin-bottom: 40px; }
+
+.hero-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 14px 5px 10px;
+    background: var(--green-soft); border: 1px solid rgba(109,216,158,0.2);
+    border-radius: 20px; font-size: 11px; font-weight: 700;
+    color: var(--green); letter-spacing: 0.5px; text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.hero-badge .pulse {
+    width: 7px; height: 7px; background: var(--green);
+    border-radius: 50%; animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(109,216,158,0.4); }
+    50% { opacity:0.5; box-shadow:0 0 0 7px rgba(109,216,158,0); }
+}
+
+.hero h1 {
+    font-size: 40px; font-weight: 800; letter-spacing: -1px;
+    line-height: 1.12; margin-bottom: 14px;
+}
+.hero h1 .highlight {
+    background: linear-gradient(135deg, var(--orange), var(--peach), var(--yellow));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+.hero-desc {
+    font-size: 17px; color: var(--text-secondary);
+    max-width: 700px; line-height: 1.75; margin-bottom: 24px;
+}
+
+.hero-stats { display: flex; gap: 36px; flex-wrap: wrap; }
+.stat { display: flex; flex-direction: column; }
+.stat-value {
+    font-size: 30px; font-weight: 800; letter-spacing: -1px;
+    font-family: var(--font-mono);
+}
+.stat-label {
+    font-size: 11px; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1px; font-weight: 700;
+}
+.stat-value.c-green { color: var(--green); }
+.stat-value.c-yellow { color: var(--yellow); }
+.stat-value.c-purple { color: var(--purple); }
+.stat-value.c-cyan { color: var(--cyan); }
+
+/* ═══════════ INLINE DEMO ═══════════ */
+.demo-embed {
+    width: 100%;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 8px 0 44px;
+    position: relative;
+}
+.demo-embed-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    font-size: 13px; font-weight: 700; color: var(--text-secondary);
+}
+.demo-embed-header .tag {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; padding: 3px 10px;
+    background: var(--green-soft); color: var(--green);
+    border-radius: 4px;
+}
+.demo-embed-body {
+    aspect-ratio: 16/8;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-family: var(--font-mono); font-size: 14px;
+    text-align: center; line-height: 1.7; padding: 24px;
+    position: relative;
+}
+.demo-embed-body::before {
+    content: '';
+    position: absolute; inset: 10px;
+    border: 1px dashed rgba(255,255,255,0.08);
+    border-radius: 6px; pointer-events: none;
+}
+.demo-fullscreen-btn {
+    font-size: 12px; font-weight: 700; color: var(--accent);
+    background: var(--accent-glow); border: 1px solid rgba(123,164,255,0.2);
+    padding: 4px 12px; border-radius: 4px; cursor: pointer;
+    transition: all 0.15s;
+}
+.demo-fullscreen-btn:hover { background: rgba(123,164,255,0.2); }
+
+/* ═══════════ IMAGE PLACEHOLDER ═══════════ */
+.img-placeholder {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #0a0a0c;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.7);
+    font-size: 14px; font-weight: 600;
+    text-align: center; padding: 28px;
+    margin: 24px 0;
+    line-height: 1.7;
+    font-family: var(--font-mono);
+    position: relative; overflow: hidden;
+}
+.img-placeholder::before {
+    content: '';
+    position: absolute; inset: 0;
+    border: 1px dashed rgba(255,255,255,0.06);
+    border-radius: 9px; margin: 8px; pointer-events: none;
+}
+.img-placeholder.tall { aspect-ratio: 3/4; max-width: 550px; }
+.img-placeholder.small { aspect-ratio: 4/3; max-width: 550px; }
+.img-placeholder.wide { aspect-ratio: 21/9; }
+.img-placeholder.effect-showcase {
+    aspect-ratio: 4/3;
+    min-height: 380px;
+    font-size: 15px;
+}
+
+/* ═══════════ SECTIONS ═══════════ */
+.section { margin-bottom: 60px; }
+
+.section h2 {
+    font-size: 26px; font-weight: 800; letter-spacing: -0.5px;
+    margin-bottom: 6px; padding-top: 8px;
+}
+.section h3 {
+    font-size: 19px; font-weight: 700;
+    margin-top: 36px; margin-bottom: 8px;
+}
+.section h4 {
+    font-size: 15px; font-weight: 700;
+    margin-top: 22px; margin-bottom: 4px;
+    color: var(--text-secondary);
+}
+.section p { color: var(--text-secondary); margin-bottom: 12px; }
+
+.section-line {
+    height: 3px; width: 48px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    border-radius: 2px;
+    margin: 6px 0 18px;
+}
+
+/* ═══════════ FEATURE CARDS ═══════════ */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 14px; margin: 24px 0;
+}
+.feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px;
+    transition: all 0.2s;
+}
+.feature-card:hover { background: var(--bg-card-hover); border-color: var(--accent-soft); transform: translateY(-1px); }
+
+.feature-card .fc-icon {
+    width: 36px; height: 36px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; margin-bottom: 12px;
+}
+.feature-card h5 { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+.feature-card p { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.55; }
+
+/* ═══════════ EFFECT CATEGORY ═══════════ */
+.effect-category { margin: 28px 0; }
+
+.effect-cat-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+}
+.effect-cat-header .dot { width: 12px; height: 12px; border-radius: 4px; }
+.effect-cat-header h4 { margin: 0; font-size: 17px; font-weight: 800; color: var(--text-primary); }
+.effect-cat-header .cnt {
+    font-size: 11px; font-family: var(--font-mono); font-weight: 600;
+    color: var(--text-muted); background: var(--bg-card);
+    padding: 2px 10px; border-radius: 4px;
+}
+
+.effect-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+.effect-tag {
+    font-size: 13px; font-weight: 600;
+    padding: 5px 12px; border-radius: 6px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-secondary); transition: all 0.15s;
+}
+.effect-tag:hover { color: var(--text-primary); border-color: var(--accent-soft); background: var(--accent-glow); }
+
+/* ═══════════ CODE BLOCK ═══════════ */
+.code-block {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 18px 0; overflow-x: auto;
+}
+.code-block-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 18px;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 11px; font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.8px;
+}
+.code-block pre {
+    padding: 16px 20px;
+    font-family: var(--font-mono); font-size: 13px;
+    line-height: 1.65; color: var(--text-secondary); overflow-x: auto;
+}
+.code-block pre .kw { color: var(--purple); }
+.code-block pre .fn { color: var(--accent); }
+.code-block pre .str { color: var(--green); }
+.code-block pre .num { color: var(--orange); }
+.code-block pre .cm { color: var(--text-muted); font-style: italic; }
+.code-block pre .tp { color: var(--cyan); }
+
+/* ═══════════ CALLOUT ═══════════ */
+.callout {
+    border-radius: var(--radius); padding: 16px 20px;
+    margin: 18px 0; font-size: 14px;
+    display: flex; gap: 12px; align-items: flex-start;
+}
+.callout .ci { flex-shrink: 0; font-size: 18px; line-height: 1.3; }
+.callout.info { background: var(--accent-glow); border: 1px solid rgba(123,164,255,0.15); color: #a8c4ff; }
+.callout.warn { background: var(--yellow-soft); border: 1px solid rgba(245,215,110,0.15); color: #f5d76e; }
+.callout.tip { background: var(--green-soft); border: 1px solid rgba(109,216,158,0.15); color: #8de8b8; }
+.callout.danger { background: var(--red-soft); border: 1px solid rgba(244,124,124,0.15); color: #f5a0a0; }
+
+/* ═══════════ TABLE ═══════════ */
+.table-wrap {
+    overflow-x: auto; margin: 18px 0;
+    border: 1px solid var(--border); border-radius: var(--radius);
+}
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+thead { background: var(--bg-card); }
+th {
+    font-weight: 700; text-align: left; padding: 11px 18px;
+    color: var(--text-muted); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    border-bottom: 1px solid var(--border);
+}
+td { padding: 11px 18px; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); }
+tr:last-child td { border-bottom: none; }
+td code { color: var(--peach); }
+
+/* ═══════════ REVIEW CTA ═══════════ */
+.review-cta {
+    background: linear-gradient(135deg, rgba(123,164,255,0.06), rgba(196,155,255,0.05), rgba(245,164,110,0.04));
+    border: 1px solid rgba(123,164,255,0.15);
+    border-radius: 14px; padding: 40px; text-align: center; margin: 48px 0;
+}
+.review-cta h3 { margin-top: 0; font-size: 24px; font-weight: 800; }
+.review-cta p { color: var(--text-secondary); max-width: 480px; margin: 10px auto 22px; }
+.review-cta .stars { font-size: 32px; letter-spacing: 5px; margin-bottom: 10px; }
+
+.btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px;
+    background: linear-gradient(135deg, var(--accent-soft), var(--purple));
+    color: #fff; font-weight: 700; font-size: 14px;
+    border-radius: 8px; transition: all 0.2s;
+    border: none; cursor: pointer; text-decoration: none;
+    font-family: var(--font-body);
+}
+.btn-primary:hover { filter: brightness(1.12); color: #fff; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(123,164,255,0.25); }
+
+.btn-outline {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 22px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-secondary); font-weight: 700; font-size: 13px;
+    border-radius: 8px; transition: all 0.2s; cursor: pointer;
+    text-decoration: none; font-family: var(--font-body);
+}
+.btn-outline:hover { border-color: var(--accent-soft); color: var(--text-primary); background: var(--bg-card-hover); }
+
+/* ═══════════ PERF ═══════════ */
+.perf { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 4px; }
+.perf.light { background: var(--green-soft); color: var(--green); }
+.perf.moderate { background: var(--yellow-soft); color: var(--yellow); }
+.perf.heavy { background: var(--red-soft); color: var(--red); }
+
+/* ═══════════ STEPS ═══════════ */
+.steps { counter-reset: step-counter; padding: 0; list-style: none; }
+.step {
+    counter-increment: step-counter;
+    display: flex; gap: 18px; margin-bottom: 26px;
+}
+.step::before {
+    content: counter(step-counter);
+    flex-shrink: 0; width: 34px; height: 34px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800; font-family: var(--font-mono);
+    color: var(--accent);
+}
+.step-content h4 { font-size: 15px; font-weight: 700; margin: 4px 0 4px; color: var(--text-primary); }
+.step-content p { font-size: 14px; color: var(--text-secondary); margin: 0; }
+
+/* ═══════════ DEVELOPER CARD ═══════════ */
+.dev-card {
+    display: flex; gap: 20px; align-items: center;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px 28px;
+    margin: 24px 0;
+}
+.dev-avatar {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent-soft), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+}
+.dev-info h5 { font-size: 16px; font-weight: 800; margin-bottom: 2px; }
+.dev-info p { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+.dev-links { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+
+/* ═══════════ ARCHITECTURE DIAGRAM ═══════════ */
+.arch-flow {
+    display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap;
+    margin: 24px 0;
+}
+.arch-box {
+    flex: 1; min-width: 160px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px;
+    position: relative;
+}
+.arch-box h5 { font-size: 13px; font-weight: 800; margin-bottom: 6px; color: var(--text-primary); }
+.arch-box p { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+.arch-box .arch-tag {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+    padding: 2px 8px; border-radius: 3px; margin-bottom: 8px; display: inline-block;
+}
+.arch-box .arch-tag.cs { background: var(--green-soft); color: var(--green); }
+.arch-box .arch-tag.hlsl { background: rgba(196,155,255,0.12); color: var(--purple); }
+.arch-box .arch-tag.editor { background: var(--yellow-soft); color: var(--yellow); }
+.arch-arrow {
+    display: flex; align-items: center; color: var(--text-muted); font-size: 20px;
+    flex-shrink: 0; padding: 0 2px;
+}
+
+/* ═══════════ MOBILE ═══════════ */
+.menu-toggle {
+    display: none; background: none; border: none;
+    color: var(--text-primary); font-size: 22px;
+    cursor: pointer; padding: 4px 8px; margin-right: 8px;
+}
+@media (max-width: 960px) {
+    .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+    .sidebar.open { transform: translateX(0); }
+    .content { margin-left: 0; padding: 28px 20px 100px; }
+    .menu-toggle { display: block; }
+    .hero h1 { font-size: 30px; }
+    .hero-stats { gap: 20px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .dev-card { flex-direction: column; text-align: center; }
+    .dev-links { margin-left: 0; }
+    .arch-flow { flex-direction: column; }
+    .arch-arrow { transform: rotate(90deg); justify-content: center; }
+}
+
+/* ═══════════ EFFECT DESCRIPTIONS ═══════════ */
+.effect-desc-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin: 14px 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.effect-desc-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.15s;
+}
+.effect-desc-row:last-child { border-bottom: none; }
+.effect-desc-row:hover { background: var(--bg-card-hover); }
+.effect-desc-name {
+    padding: 10px 16px;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.effect-desc-name .perf-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.effect-desc-text {
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+}
+.effect-desc-text:empty::after {
+    content: '—';
+    color: var(--text-muted);
+}
+
+/* Pipeline badges */
+.pipe-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 6px;
+    font-size: 12px; font-weight: 700;
+    font-family: var(--font-mono);
+}
+.pipe-badge.builtin { background: var(--green-soft); color: var(--green); }
+.pipe-badge.urp { background: var(--accent-glow); color: var(--accent); }
+.pipe-badge.hdrp { background: rgba(196,155,255,0.12); color: var(--purple); }
+
+/* Variant grid */
+.variant-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+    margin: 16px 0;
+}
+.variant-chip {
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+}
+.variant-chip .vp {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 2px;
+}
+.variant-chip .vp.bi { color: var(--green); }
+.variant-chip .vp.urp { color: var(--accent); }
+.variant-chip .vp.hdrp { color: var(--purple); }
+
+.img-placeholder.wide {
+    width: 100%;
+    max-width: 1920px;         
+    aspect-ratio: 1920 / 820;  
+    overflow: hidden;
+    border-radius: 1px;
+     padding: 2px 2px;
+}
+
+
+
+
+.img-placeholder.wide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 1px;
+     padding: 2px 2px;
+}
+
+.img-placeholder.wide2 {
+    height: 100%;
+    max-height: 1920px;         
+    aspect-ratio: 737 / 1210;  
+    overflow: hidden;
+    border-radius: 1px;
+     padding: 2px 2px;
+}
+
+.img-placeholder.wide2 img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 1px;
+     padding: 2px 2px;
+}
+
+@media (max-width: 700px) {
+    .effect-desc-row { grid-template-columns: 1fr; }
+    .effect-desc-name { border-right: none; border-bottom: 1px solid var(--border-subtle); }
+}
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+    <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+    <div class="header-logo">
+        <span class="leaf">🍃</span> Leafo Studio
+        <span style="color:var(--text-muted); font-weight:500; font-size:13px; margin-left:4px;">/ docs</span>
+    </div>
+    <nav class="header-links">
+        <a href="#getting-started">Docs</a>
+        <a href="#effects">Effects</a>
+        <a href="#scripting-api">API</a>
+        <a href="#technical-deep-dive">Technical</a>
+        <a href="#support">Discord</a>
+        <a href="#review" class="cta">★ Review</a>
+    </nav>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Getting Started</div>
+        <a href="#overview" class="sidebar-link active"><span class="icon">🏠</span> Overview</a>
+        <a href="#demo" class="sidebar-link"><span class="icon">▶</span> Try the Demo</a>
+        <a href="#getting-started" class="sidebar-link"><span class="icon">🚀</span> First Steps</a>
+        <a href="#render-pipelines" class="sidebar-link"><span class="icon">⚙</span> Render Pipelines</a>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Features</div>
+        <a href="#effects" class="sidebar-link"><span class="icon">✦</span> All 128 Effects</a>
+        <a href="#inspector" class="sidebar-link"><span class="icon">🔧</span> Inspector</a>
+        <a href="#outline-modes" class="sidebar-link"><span class="icon">◻</span> Outline Modes &amp; SDF</a>
+        <a href="#tools" class="sidebar-link"><span class="icon">🛠</span> Tools</a>
+        <a href="#masks" class="sidebar-link"><span class="icon">🎭</span> Effect Masks</a>
+        <a href="#global" class="sidebar-link"><span class="icon">🌐</span> Global Settings</a>
+        <a href="#performance" class="sidebar-link"><span class="icon">⚡</span> Performance</a>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Animation</div>
+        <a href="#animation-system" class="sidebar-link"><span class="icon">♫</span> Animation System</a>
+        <a href="#keyframe-editor" class="sidebar-link"><span class="icon">🎹</span> Keyframe Editor</a>
+        <a href="#animation-browser" class="sidebar-link"><span class="icon">📂</span> Animation Browser</a>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Scripting</div>
+        <a href="#scripting-api" class="sidebar-link"><span class="icon">{ }</span> C# API</a>
+        <a href="#combo-examples" class="sidebar-link"><span class="icon">🎨</span> Combo Examples</a>
+        <a href="#presets" class="sidebar-link"><span class="icon">💾</span> Effect Presets</a>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Technical</div>
+        <a href="#technical-deep-dive" class="sidebar-link"><span class="icon">🧠</span> Architecture</a>
+        <a href="#shader-internals" class="sidebar-link"><span class="icon">⚙</span> Shader Internals</a>
+        <a href="#sdf-system" class="sidebar-link"><span class="icon">◈</span> SDF Pipeline</a>
+        <a href="#custom-effects" class="sidebar-link"><span class="icon">➕</span> Custom Effects</a>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-section-title">Reference</div>
+        <a href="#shader-variants" class="sidebar-link"><span class="icon">📦</span> Shader Variants</a>
+        <a href="#batching" class="sidebar-link"><span class="icon">📊</span> Batching</a>
+        <a href="#support" class="sidebar-link"><span class="icon">💬</span> Support</a>
+        <a href="#faq" class="sidebar-link"><span class="icon">❓</span> FAQ</a>
+        <a href="#review" class="sidebar-link"><span class="icon">⭐</span> Review</a>
+    </div>
+</aside>
+
+<main class="content">
+
+<!-- HERO -->
+<section class="hero" id="overview">
+    <div class="hero-badge"><span class="pulse"></span> Documentation v2.0</div>
+    <h1>Sprite Shaders <span class="highlight">Animated</span> — 2D</h1>
+    <p class="hero-desc">
+        128 combinable shader effects for sprites, UI, and particles — with SDF outlines, a built-in animation system, runtime API, effect presets, and SRP batching. Works on Built-in, URP, and HDRP out of the box.
+    </p>
+    <div class="hero-stats">
+        <div class="stat"><span class="stat-value c-green">128</span><span class="stat-label">Effects</span></div>
+        <div class="stat"><span class="stat-value c-yellow">25</span><span class="stat-label">Shader Variants</span></div>
+        <div class="stat"><span class="stat-value c-purple">8</span><span class="stat-label">Render Groups</span></div>
+        <div class="stat"><span class="stat-value c-cyan">1</span><span class="stat-label">Setup Step</span></div>
+    </div>
+</section>
+
+<div class="img-placeholder wide">
+    <img src="1.png"></img>
+</div>
+
+<div class="dev-card">
+    <div class="dev-avatar">🍃</div>
+    <div class="dev-info">
+        <h5>Leafo Studio</h5>
+        <p>Made by leafousio — YouTuber, game developer, and asset creator.<br>Developer of Xenophobia, Rocky Path, Mark in Space.</p>
+    </div>
+    <div class="dev-links">
+        <a href="https://assetstore.unity.com/publishers/72230" target="_blank" class="btn-outline">Asset Store</a>
+        <a href="https://leafousio.itch.io/" target="_blank" class="btn-outline">itch.io</a>
+    </div>
+</div>
+
+<!-- DEMO -->
+<section class="section" id="demo">
+    <h2>Try It Live ▶</h2>
+    <div class="section-line"></div>
+    <p>Play with all 128 effects in your browser. Toggle effects on and off, tweak the sliders, combine as many as you want.</p>
+
+    <div class="demo-embed">
+        <div class="demo-embed-header">
+            <span>🎮 Interactive Demo — FlexiSprite: Animated Sprite Shaders 2D</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span class="tag">WebGL</span>
+                <button class="demo-fullscreen-btn" onclick="this.closest('.demo-embed').querySelector('.demo-embed-body').requestFullscreen()">⛶ Fullscreen</button>
+            </div>
+        </div>
+        <div class="demo-embed-body">
+            WebGL build will be embedded here.<br>
+            Build the EffectShowcaseCarousel scene and host it on itch.io or your own CDN,<br>
+            then replace this placeholder with an &lt;iframe&gt;.
+        </div>
+    </div>
+</section>
+
+<!-- GETTING STARTED -->
+<section class="section" id="getting-started">
+    <h2>First Steps 🚀</h2>
+    <div class="section-line"></div>
+
+    <ol class="steps">
+        <li class="step">
+            <div class="step-content">
+                <h4>Import the package</h4>
+                <p>Drag the .unitypackage into your project. Everything lives under <code>Assets/AnimatedSprite/</code>.</p>
+            </div>
+        </li>
+        <li class="step">
+            <div class="step-content">
+                <h4>Add the component</h4>
+                <p>Select a SpriteRenderer, click <strong>Add Component → Animated Sprite Shader</strong>. The correct shader variant is auto-assigned based on your render pipeline.</p>
+            </div>
+        </li>
+        <li class="step">
+            <div class="step-content">
+                <h4>Turn on effects</h4>
+                <p>Open any category section, tick an effect, and tweak its sliders. That's it — no materials to create, no prefabs to set up.</p>
+            </div>
+        </li>
+    </ol>
+
+    <div class="callout tip">
+        <span class="ci">💡</span>
+        <div>First time? Open the <strong>EffectShowcaseCarousel</strong> demo scene to see every effect running live with animated parameters.</div>
+    </div>
+</section>
+
+<!-- RENDER PIPELINES -->
+<section class="section" id="render-pipelines">
+    <h2>Render Pipelines ⚙</h2>
+    <div class="section-line"></div>
+    <p>Every shader variant ships for all three pipelines. Pick the right one and you're good to go. Open <strong>Master Setup</strong> (Window → Animated Sprite → Master Setup) to set your active pipeline — it patches all .shader files with the correct <code>#define</code> and configures the batching strategy.</p>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin: 18px 0;">
+        <span class="pipe-badge builtin">● Built-in — 11 variants</span>
+        <span class="pipe-badge urp">● URP — 10 variants</span>
+        <span class="pipe-badge hdrp">● HDRP — 4 variants</span>
+    </div>
+
+    <h3>All 17 Shader Variants</h3>
+    <div class="variant-grid">
+        <div class="variant-chip"><span class="vp bi">Built-in</span>Standard</div>
+        <div class="variant-chip"><span class="vp bi">Built-in</span>Additive</div>
+        <div class="variant-chip"><span class="vp bi">Built-in</span>Multiply</div>
+        <div class="variant-chip"><span class="vp bi">Built-in</span>GUI</div>
+        <div class="variant-chip"><span class="vp bi">Built-in</span>GUI Additive</div>
+        <div class="variant-chip"><span class="vp bi">Built-in</span>Standard Premultiply</div>
+        <div class="variant-chip"><span class="vp bi">Built-in</span>Additive Soft</div>
+        <div class="variant-chip"><span class="vp bi">Built-in</span>GUI Premultiply</div>
+        <div class="variant-chip"><span class="vp bi">Built-in</span>Screen Space Overlay</div>
+        <div class="variant-chip"><span class="vp bi">Built-in</span>3D Lit</div>
+        <div class="variant-chip"><span class="vp bi">Built-in</span>3D Lit Cutout</div>
+        <div class="variant-chip"><span class="vp urp">URP</span>standard</div>
+        <div class="variant-chip"><span class="vp urp">URP</span>additive</div>
+        <div class="variant-chip"><span class="vp urp">URP</span>premultiply</div>
+        <div class="variant-chip"><span class="vp urp">URP</span>GUI</div>
+        <div class="variant-chip"><span class="vp urp">URP</span>GUIAdditive</div>
+        <div class="variant-chip"><span class="vp urp">URP</span>2D Lit</div>
+        <div class="variant-chip"><span class="vp urp">URP</span>2D Lit Additive</div>
+        <div class="variant-chip"><span class="vp urp">URP</span>3D Lit</div>
+        <div class="variant-chip"><span class="vp urp">URP</span>3D Lit Cutout</div>
+        <div class="variant-chip"><span class="vp urp">URP</span>3D Lit Additive</div>
+        <div class="variant-chip"><span class="vp hdrp">HDRP</span>Unlit</div>
+        <div class="variant-chip"><span class="vp hdrp">HDRP</span>Additive</div>
+        <div class="variant-chip"><span class="vp hdrp">HDRP</span>Lit</div>
+        <div class="variant-chip"><span class="vp hdrp">HDRP</span>GUI</div>
+    </div>
+
+    <div class="callout warn">
+        <span class="ci">⚠️</span>
+        <div>URP shaders in a Built-in project = pink materials. Use <strong>Master Setup → Pipeline Migration</strong> to batch-swap all sprites in your scenes to the correct variants.</div>
+    </div>
+</section>
+
+<!-- EFFECTS -->
+<section class="section" id="effects">
+    <h2>All 128 Effects ✦</h2>
+    <div class="section-line"></div>
+    <p>Every effect listed below with a short description of what it does and what it's best used for. The colored dot next to each name shows its performance class: <span class="perf light">● lightweight</span> <span class="perf moderate">● moderate</span> <span class="perf heavy">● heavy</span>.</p>
+
+    
+    <div class="effect-category">
+        <div class="effect-cat-header">
+            <span class="dot" style="background:#f47c7c;"></span>
+            <h4>Color</h4>
+            <span class="cnt">36</span>
+        </div>
+        <div class="effect-tags"><span class="effect-tag">Strong Tint</span><span class="effect-tag">Add Color</span><span class="effect-tag">Alpha Tint</span><span class="effect-tag">Hit Effect</span><span class="effect-tag">Negative</span><span class="effect-tag">Greyscale</span><span class="effect-tag">Bloom</span><span class="effect-tag">Color Replace</span><span class="effect-tag">LUT Replace</span><span class="effect-tag">Hue Shift</span><span class="effect-tag">Add Hue</span><span class="effect-tag">Saturation</span><span class="effect-tag">Brightness</span><span class="effect-tag">Contrast</span><span class="effect-tag">Split Toning</span><span class="effect-tag">Posterize</span><span class="effect-tag">Poison</span><span class="effect-tag">Frozen</span><span class="effect-tag">Metal</span><span class="effect-tag">Camouflage</span><span class="effect-tag">Rainbow</span><span class="effect-tag">Black Tint</span><span class="effect-tag">Chromatic Aberration</span><span class="effect-tag">Palette Swap</span><span class="effect-tag">Dithering</span><span class="effect-tag">CRT Scanlines</span><span class="effect-tag">Vignette</span><span class="effect-tag">Color Grading</span><span class="effect-tag">Sepia</span><span class="effect-tag">Thermal Vision</span><span class="effect-tag">Recolor RGB</span><span class="effect-tag">Ping Pong Glow</span><span class="effect-tag">Color Cycle</span><span class="effect-tag">Gradient</span><span class="effect-tag">Radial Gradient</span><span class="effect-tag">Color Ramp</span></div>
+        <div class="effect-desc-grid"><div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Strong Tint</div>
+<div class="effect-desc-text">Paints over the sprite with a solid color while keeping transparency. Great for damage flashes, frozen states, or solid silhouettes.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Add Color</div>
+<div class="effect-desc-text">Brightens the sprite by adding a color tint on top. Perfect for glowing, magical, or 'supercharged' states.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Alpha Tint</div>
+<div class="effect-desc-text">Tints the sprite while keeping dark areas dark. Excellent for ambient mood lighting or underwater scenes.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Hit Effect</div>
+<div class="effect-desc-text">A harsh, flat color override. Essential for that classic arcade-style white 'damage flash' when an enemy is struck.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Negative</div>
+<div class="effect-desc-text">Inverts the colors. Gives a spooky, corrupted, or 'phase-shifted' look.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Greyscale</div>
+<div class="effect-desc-text">Drains all color to black and white. Perfect for death states, petrification, or cinematic flashbacks.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--red);"></span>Bloom</div>
+<div class="effect-desc-text">Makes the bright areas of your sprite glow softly. Essential for neon signs, energy cores, or dreamy atmospheres.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Color Replace</div>
+<div class="effect-desc-text">Swaps up to 4 specific colors for new ones. The best tool for making alternate character skins or palette swaps.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>LUT Replace</div>
+<div class="effect-desc-text">Replaces the sprite's color palette using a lookup texture. Feed it a gradient strip to completely remap the tonal range.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Hue Shift</div>
+<div class="effect-desc-text">Slides the sprite's colors around the rainbow. Good for psychedelic effects or rapid 'invincibility' color-cycling.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Add Hue</div>
+<div class="effect-desc-text">Adds hue, saturation, and brightness in HSV space. More precise than Hue Shift for targeted color adjustments.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Saturation</div>
+<div class="effect-desc-text">Boosts or drains color intensity. Push it high for a vibrant, punchy look, or drop it low for a muted, gloomy vibe.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Brightness</div>
+<div class="effect-desc-text">Lightens or darkens the entire sprite uniformly.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Contrast</div>
+<div class="effect-desc-text">Makes darks darker and lights lighter. Good for making a washed-out sprite 'pop' with more definition.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Split Toning</div>
+<div class="effect-desc-text">Tints highlights and shadows with different colors. A cinematic grading technique for stylized mood.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Posterize</div>
+<div class="effect-desc-text">Reduces the number of colors, creating chunky, distinct bands. Gives a retro, low-bit, or cel-shaded style.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Poison</div>
+<div class="effect-desc-text">Adds a sickly, bubbling, multi-colored noise overlay. Perfect for toxic, radioactive, or infected status effects.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Frozen</div>
+<div class="effect-desc-text">Covers the sprite in an icy, crystalline texture with bright, frosty highlights. Great for 'chilled' status effects.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Metal</div>
+<div class="effect-desc-text">Gives the sprite a shiny, reflective, metallic sheen that catches the light as it moves.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Camouflage</div>
+<div class="effect-desc-text">Overlays a procedural camo pattern on the sprite. Adjustable scale, colors, and blend.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Rainbow</div>
+<div class="effect-desc-text">Washes the sprite in a scrolling rainbow gradient. Classic visual for invincibility stars or ultimate abilities.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Black Tint</div>
+<div class="effect-desc-text">Tints only the dark areas of the sprite, leaving highlights untouched. Useful for subtle mood shifts.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Chromatic Aberration</div>
+<div class="effect-desc-text">Splits the red and blue color channels. Creates a glitchy '3D glasses' look or a heavy impact effect.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Palette Swap</div>
+<div class="effect-desc-text">Remaps colors through a 1D palette texture. Source pixel position maps to target color — classic retro recoloring.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Dithering</div>
+<div class="effect-desc-text">Adds a retro ordered-dithering pattern over the sprite. Screen-space mode keeps the pattern stable during movement.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>CRT Scanlines</div>
+<div class="effect-desc-text">Applies CRT TV scanlines with optional barrel distortion for a retro monitor look.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Vignette</div>
+<div class="effect-desc-text">Darkens the edges of the sprite, drawing the eye to the center.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Color Grading</div>
+<div class="effect-desc-text">Exposure, gamma, and lift/gain controls. Quick per-sprite color correction without post-processing.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Sepia</div>
+<div class="effect-desc-text">Tints everything a warm, vintage brown. Gives the look of an antique photograph.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Thermal Vision</div>
+<div class="effect-desc-text">Remaps the sprite to a heat-map color scheme (cold=blue, hot=white).</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Recolor RGB</div>
+<div class="effect-desc-text">Remaps each RGB channel individually. Swap red for blue, green for red — total channel control.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Ping Pong Glow</div>
+<div class="effect-desc-text">Smoothly pulses a glowing color on and off. Great for idle alarms, 'ready' states, or glowing runes.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Color Cycle</div>
+<div class="effect-desc-text">Smoothly crossfades through four custom colors over time. Great for enchanted items or shifting elemental states.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Gradient</div>
+<div class="effect-desc-text">Washes a smooth two-color gradient across the sprite at any angle. Good for lighting shifts or stylized shading.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Radial Gradient</div>
+<div class="effect-desc-text">Adds a circular gradient radiating outward from a center point. Good for a localized glow or darkening the edges.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Color Ramp</div>
+<div class="effect-desc-text">Completely recolors the sprite using a custom gradient map. Amazing for extreme stylized lighting or 'thermal vision' looks.</div>
+</div></div>
+    </div>
+
+    <div class="effect-category">
+        <div class="effect-cat-header">
+            <span class="dot" style="background:#f5d76e;"></span>
+            <h4>Edge</h4>
+            <span class="cnt">14</span>
+        </div>
+        <div class="effect-tags"><span class="effect-tag">Outline</span><span class="effect-tag">Inner Outline</span><span class="effect-tag">Texture Outline</span><span class="effect-tag">Rainbow Outline</span><span class="effect-tag">Distort Outline</span><span class="effect-tag">Glow</span><span class="effect-tag">Shadow</span><span class="effect-tag">Soft Shadow</span><span class="effect-tag">Rim Light</span><span class="effect-tag">Outline Only</span><span class="effect-tag">Gradient Outline</span><span class="effect-tag">Anim Outline Thickness</span><span class="effect-tag">Selection Highlight</span><span class="effect-tag">Fake Lighting</span></div>
+        <div class="effect-desc-grid"><div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Outline</div>
+<div class="effect-desc-text">Adds a solid border around the sprite. Essential to make characters pop against backgrounds. Use SDF mode for smooth, scalable outlines.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Inner Outline</div>
+<div class="effect-desc-text">Draws a border inside the sprite. Good for subtle selection highlights that don't change the outer footprint.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Texture Outline</div>
+<div class="effect-desc-text">Uses a custom texture for the outline. Imagine a border made of scrolling fire, starry space, or flowing water.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Rainbow Outline</div>
+<div class="effect-desc-text">A solid outline that constantly cycles through rainbow colors.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Distort Outline</div>
+<div class="effect-desc-text">A wobbly, wavy, unstable outline. Great for jittery energy fields, slimes, or underwater borders.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--red);"></span>Glow</div>
+<div class="effect-desc-text">Adds a soft, fuzzy, luminous aura around the outside of the sprite. Perfect for magical items or glowing auras.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Shadow</div>
+<div class="effect-desc-text">Drops a crisp, solid shadow offset behind the sprite. Gives a classic 2D UI or retro paper-craft feel.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--red);"></span>Soft Shadow</div>
+<div class="effect-desc-text">Drops a blurred, realistic shadow behind the sprite to add depth and separate it from the background.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Rim Light</div>
+<div class="effect-desc-text">Highlights only the edges facing a certain direction. Perfect for faking a rim-light from a sun, moon, or torch.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Outline Only</div>
+<div class="effect-desc-text">Renders only the outline — the sprite interior becomes invisible. Good for wireframe or blueprint looks.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Gradient Outline</div>
+<div class="effect-desc-text">An outline that fades smoothly between two colors from one side to the other.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Anim Outline Thickness</div>
+<div class="effect-desc-text">Animates the outline thickness between a min and max value over time. Pulsing border effect.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Selection Highlight</div>
+<div class="effect-desc-text">An animated, dashed 'marching ants' outline. The standard 'this unit is selected' strategy game look.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Fake Lighting</div>
+<div class="effect-desc-text">Simulates a simple directional light with specular highlights. Adds depth to flat sprites without real lights.</div>
+</div></div>
+    </div>
+
+    <div class="effect-category">
+        <div class="effect-cat-header">
+            <span class="dot" style="background:#6dd89e;"></span>
+            <h4>UV / Distortion</h4>
+            <span class="cnt">28</span>
+        </div>
+        <div class="effect-tags"><span class="effect-tag">Pixelate</span><span class="effect-tag">Wave</span><span class="effect-tag">Twist</span><span class="effect-tag">UV Distort</span><span class="effect-tag">Full Distort</span><span class="effect-tag">Directional Distort</span><span class="effect-tag">UV Scroll</span><span class="effect-tag">Rotate</span><span class="effect-tag">Squeeze</span><span class="effect-tag">Squish</span><span class="effect-tag">Wiggle</span><span class="effect-tag">Wind</span><span class="effect-tag">Sharpen</span><span class="effect-tag">Gaussian Blur</span><span class="effect-tag">Directional Blur</span><span class="effect-tag">World Tiling</span><span class="effect-tag">UV Scale Offset</span><span class="effect-tag">Curl Noise</span><span class="effect-tag">FBM Noise</span><span class="effect-tag">UV Scroll Overlay</span><span class="effect-tag">Shockwave</span><span class="effect-tag">Sine Scale</span><span class="effect-tag">Heartbeat</span><span class="effect-tag">Breathing</span><span class="effect-tag">Liquid Wobble</span><span class="effect-tag">Flip Book Blend</span><span class="effect-tag">Smooth Pixel Art</span><span class="effect-tag">UV Bend Point</span></div>
+        <div class="effect-desc-grid"><div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Pixelate</div>
+<div class="effect-desc-text">Makes the sprite blocky and low-res. Great for censoring, retro-demakes, or transitioning into a digital world.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Wave</div>
+<div class="effect-desc-text">Makes the sprite ripple gently. Perfect for a flag flapping in the wind or a reflection in water.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Twist</div>
+<div class="effect-desc-text">Swirls the sprite around a center point, like it's being sucked into a vortex or a black hole.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>UV Distort</div>
+<div class="effect-desc-text">Warps the sprite using a custom noise texture. Good for heavy heat haze, underwater wobbles, or messy glitches.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Full Distort</div>
+<div class="effect-desc-text">A built-in, chaotic, bubbly distortion. Looks like boiling liquid, heavy heat shimmer, or chaotic energy.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Directional Distort</div>
+<div class="effect-desc-text">Smudges the sprite back and forth along a specific angle. Good for faking fast, vibrating movement.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>UV Scroll</div>
+<div class="effect-desc-text">Slides the sprite's texture continuously. Essential for animating conveyor belts, flowing water, or laser beams.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Rotate</div>
+<div class="effect-desc-text">Spins the texture around its center point continuously or sets it to a fixed angle.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Squeeze</div>
+<div class="effect-desc-text">Pinches and stretches the sprite repeatedly. Good for a cartoonish 'breathing' or 'squishy' idle animation.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Squish</div>
+<div class="effect-desc-text">A classic squash-and-stretch effect. Use it for heavy impacts, jump wind-ups, or bouncing.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Wiggle</div>
+<div class="effect-desc-text">Shakes the sprite rapidly side-to-side. Perfect for 'about to explode', 'frozen shivering', or 'taking damage' states.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Wind</div>
+<div class="effect-desc-text">Bends the top of the sprite while keeping the bottom planted. Perfect for grass, trees, or hair blowing in the breeze.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Sharpen</div>
+<div class="effect-desc-text">Enhances the crispness of edges. Good for making slightly blurry assets pop with more definition.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--red);"></span>Gaussian Blur</div>
+<div class="effect-desc-text">Blurs the sprite out of focus smoothly. Use for background elements, depth of field, or faking fast movement.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Directional Blur</div>
+<div class="effect-desc-text">Blurs the sprite only in one direction. The classic 'speed lines' motion blur look for fast dashes.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>World Tiling</div>
+<div class="effect-desc-text">Repeats the sprite infinitely across the world. Great for making seamless backgrounds out of a single small sprite.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>UV Scale Offset</div>
+<div class="effect-desc-text">Zooms in or shifts the texture around inside its bounding box.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Curl Noise</div>
+<div class="effect-desc-text">A smooth, swirling, magical-looking distortion that warps the image without tearing it.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>FBM Noise</div>
+<div class="effect-desc-text">A cloudy, smoky, complex distortion that makes the sprite look like it's dissolving into gas.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>UV Scroll Overlay</div>
+<div class="effect-desc-text">Slides a secondary texture over the sprite. Good for adding moving TV static, rain, or flowing energy.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Shockwave</div>
+<div class="effect-desc-text">Creates a ripple that pushes the sprite outward like a sonic boom or an explosion shockwave.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Sine Scale</div>
+<div class="effect-desc-text">Smoothly pulses the entire size of the sprite up and down.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Heartbeat</div>
+<div class="effect-desc-text">A sharp, rhythmic double-pulse. Literally mimics a beating heart.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Breathing</div>
+<div class="effect-desc-text">A slow, gentle vertical stretch, simulating a character calmly inhaling and exhaling.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Liquid Wobble</div>
+<div class="effect-desc-text">A jiggly, gelatinous movement. Essential for animating slimes, jellies, or water elementals.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Flip Book Blend</div>
+<div class="effect-desc-text">Smoothly crossfades between animation frames to make choppy, low-framerate animations look fluid.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Smooth Pixel Art</div>
+<div class="effect-desc-text">Keeps pixel art crisp but allows smooth sub-pixel movement/rotation without shimmering or jiggling edges.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>UV Bend Point</div>
+<div class="effect-desc-text">Sucks the sprite inwards towards a specific point (like a black hole) or pushes it away (like magnetic repulsion).</div>
+</div></div>
+    </div>
+
+    <div class="effect-category">
+        <div class="effect-cat-header">
+            <span class="dot" style="background:#c49bff;"></span>
+            <h4>Dissolve / Fade</h4>
+            <span class="cnt">19</span>
+        </div>
+        <div class="effect-tags"><span class="effect-tag">Dissolve</span><span class="effect-tag">Glow Dissolve</span><span class="effect-tag">Source Dissolve</span><span class="effect-tag">Directional Fade</span><span class="effect-tag">Dir Glow Fade</span><span class="effect-tag">Full Alpha Dissolve</span><span class="effect-tag">Halftone</span><span class="effect-tag">Alpha Cutoff</span><span class="effect-tag">Radial Wipe</span><span class="effect-tag">Iris Wipe</span><span class="effect-tag">Blinds</span><span class="effect-tag">Diamond Dissolve</span><span class="effect-tag">Scanline Dissolve</span><span class="effect-tag">Spread Fade</span><span class="effect-tag">Pixel Dissolve</span><span class="effect-tag">Spiral Wipe</span><span class="effect-tag">Hex Dissolve</span><span class="effect-tag">Burn Direction</span><span class="effect-tag">Dash Shader</span></div>
+        <div class="effect-desc-grid"><div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Dissolve</div>
+<div class="effect-desc-text">The classic 'burn away' effect using a noise texture. Leaves a colored, crusty edge where it burns.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Glow Dissolve</div>
+<div class="effect-desc-text">Like normal Dissolve, but the burning edge glows brightly. Great for magical creatures fading away.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Source Dissolve</div>
+<div class="effect-desc-text">Erases the sprite starting from a specific point and spreading outward, like a growing hole burning through paper.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Directional Fade</div>
+<div class="effect-desc-text">Wipes the sprite away cleanly in a straight line from any angle.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Dir Glow Fade</div>
+<div class="effect-desc-text">Wipes the sprite away, but leaves a glowing laser-like edge sweeping along the wipe.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Full Alpha Dissolve</div>
+<div class="effect-desc-text">Simply fades the whole sprite to transparent smoothly.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Halftone</div>
+<div class="effect-desc-text">Dissolves the sprite into comic-book style dots that shrink away into nothing.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Alpha Cutoff</div>
+<div class="effect-desc-text">Hard alpha threshold — pixels below the cutoff become fully transparent. Good for dithered transparency.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Radial Wipe</div>
+<div class="effect-desc-text">Wipes the sprite away in a circle, like a clock hand sweeping around. Good for cooldown timers.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Iris Wipe</div>
+<div class="effect-desc-text">Closes a circle on the sprite, shrinking to the center like a classic Looney Tunes ending.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Blinds</div>
+<div class="effect-desc-text">Slices the sprite into horizontal or vertical strips that smoothly disappear.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Diamond Dissolve</div>
+<div class="effect-desc-text">Dissolves the sprite into little shrinking diamond or rhombus shapes.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Scanline Dissolve</div>
+<div class="effect-desc-text">Dissolves the sprite by erasing horizontal TV scanlines one by one.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Spread Fade</div>
+<div class="effect-desc-text">Erases the sprite outward from a center point, leaving soft, smooth edges.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Pixel Dissolve</div>
+<div class="effect-desc-text">Dissolves the sprite into chunky, 8-bit style blocks. Great for retro teleports or digital deaths.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Spiral Wipe</div>
+<div class="effect-desc-text">Erases the sprite in a swirling galaxy pattern.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Hex Dissolve</div>
+<div class="effect-desc-text">Dissolves the sprite into a high-tech honeycomb/hexagonal grid. Great for sci-fi shields or holograms.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Burn Direction</div>
+<div class="effect-desc-text">A directional wipe that leaves a vivid, flickering fire and charcoal edge as it burns the sprite away.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Dash Shader</div>
+<div class="effect-desc-text">Quick dash/teleport dissolve — the sprite smears in the movement direction and fades.</div>
+</div></div>
+    </div>
+
+    <div class="effect-category">
+        <div class="effect-cat-header">
+            <span class="dot" style="background:#72d8d0;"></span>
+            <h4>Special Effects</h4>
+            <span class="cnt">31</span>
+        </div>
+        <div class="effect-tags"><span class="effect-tag">Hologram</span><span class="effect-tag">Glitch</span><span class="effect-tag">Flicker</span><span class="effect-tag">Shine</span><span class="effect-tag">Smoke</span><span class="effect-tag">Flame</span><span class="effect-tag">Enchanted</span><span class="effect-tag">Shifting</span><span class="effect-tag">Shift Rainbow</span><span class="effect-tag">Overlay</span><span class="effect-tag">Checkerboard</span><span class="effect-tag">UV Visualize</span><span class="effect-tag">Health Tint</span><span class="effect-tag">X-Ray Silhouette</span><span class="effect-tag">Minimap Ping</span><span class="effect-tag">Dialogue Emphasis</span><span class="effect-tag">Voronoi Crackle</span><span class="effect-tag">Water Reflection</span><span class="effect-tag">Motion Smear</span><span class="effect-tag">Depth Parallax</span><span class="effect-tag">Energy Aura</span><span class="effect-tag">Global Smoke</span><span class="effect-tag">Holographic Card</span><span class="effect-tag">Cloud Shadows</span><span class="effect-tag">Trail - Speed Color</span><span class="effect-tag">Trail - Afterimage</span><span class="effect-tag">Trail - Rainbow</span><span class="effect-tag">Charging Ability</span><span class="effect-tag">Blueprint</span><span class="effect-tag">Ghosting</span><span class="effect-tag">Retro Palette</span></div>
+        <div class="effect-desc-grid"><div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Hologram</div>
+<div class="effect-desc-text">Adds scrolling scanlines, transparency, and signal jitter for a classic sci-fi hologram look.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Glitch</div>
+<div class="effect-desc-text">Slices the sprite horizontally and misaligns the color channels to look like a broken digital broadcast.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Flicker</div>
+<div class="effect-desc-text">Flashes the sprite completely invisible and visible rapidly. The classic 'invincibility frames' effect.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Shine</div>
+<div class="effect-desc-text">Sweeps a bright, angled glare across the sprite. Good for shiny rare cards, gems, or unsheathing a clean sword.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Smoke</div>
+<div class="effect-desc-text">Billows an animated, volumetric-looking smoke texture over the sprite.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Flame</div>
+<div class="effect-desc-text">Wraps the sprite in a flickering fire effect. Show the fire over the sprite, or make the sprite itself look like fire.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Enchanted</div>
+<div class="effect-desc-text">Sprinkles glittering, magical sparkles over the sprite.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Shifting</div>
+<div class="effect-desc-text">Smoothly pulses the sprite's brightness or color between two tones. Good for idle magical items.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Shift Rainbow</div>
+<div class="effect-desc-text">Washes a smoothly animated rainbow gradient over the sprite's lighting.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Overlay</div>
+<div class="effect-desc-text">Places any custom texture on top of the sprite with scrolling UVs and blend control.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Checkerboard</div>
+<div class="effect-desc-text">Covers the sprite in a racing or chess-board pattern that can lock to screen or world space.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>UV Visualize</div>
+<div class="effect-desc-text">A technical debug tool that shows the underlying UV coordinates as Red and Green.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Health Tint</div>
+<div class="effect-desc-text">Automatically shifts the sprite's color to a 'danger' tint as health drops, with optional panic noise at low health.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>X-Ray Silhouette</div>
+<div class="effect-desc-text">Shows a flat colored cutout of the sprite only when hidden behind a wall. Essential for tracking the player.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Minimap Ping</div>
+<div class="effect-desc-text">Emits a radar-like expanding ring from the sprite. Good for highlighting objectives or unit locations.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Dialogue Emphasis</div>
+<div class="effect-desc-text">A bouncy, joyful up-and-down hop. Used in RPGs when a character is talking excitedly.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Voronoi Crackle</div>
+<div class="effect-desc-text">Cracks the sprite like shattered glass, dry earth, or lava rock, leaving glowing fissures between chunks.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--red);"></span>Water Reflection</div>
+<div class="effect-desc-text">Mirrors the top half of the sprite downward with animated ripples for a water reflection.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--red);"></span>Motion Smear</div>
+<div class="effect-desc-text">Stretches the sprite backwards along its movement path to fake fast, snappy animation smearing.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--red);"></span>Depth Parallax</div>
+<div class="effect-desc-text">Offsets a secondary layer based on view angle for a faux-3D parallax depth effect.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Energy Aura</div>
+<div class="effect-desc-text">Radiates a pulsing, luminous energy field around the sprite.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Global Smoke</div>
+<div class="effect-desc-text">Adds a layer of smoke that stays consistent across the whole screen, not locked to the sprite.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Holographic Card</div>
+<div class="effect-desc-text">Recreates the shiny, iridescent foil look of a rare physical trading card.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Cloud Shadows</div>
+<div class="effect-desc-text">Casts soft, moving shadows over the sprite, like clouds passing overhead in a sunny top-down game.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Trail - Speed Color</div>
+<div class="effect-desc-text">Leaves a color trail that changes hue based on how fast the sprite is moving.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Trail - Afterimage</div>
+<div class="effect-desc-text">Leaves a 'ghosting' trail of fading clones behind the moving sprite. A classic ninja/dash effect.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Trail - Rainbow</div>
+<div class="effect-desc-text">Leaves a vibrant, rainbow-colored ribbon trail behind the sprite as it dashes.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Charging Ability</div>
+<div class="effect-desc-text">Draws pulsing energy rings and electric static around the center. Perfect for 'charging up an attack' visuals.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--green);"></span>Blueprint</div>
+<div class="effect-desc-text">Turns the sprite into a technical drawing, pulling out edges as sketchy lines on a blueprint grid.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--red);"></span>Ghosting</div>
+<div class="effect-desc-text">Creates persistent fading afterimages that follow the sprite like an echo.</div>
+</div>
+<div class="effect-desc-row">
+<div class="effect-desc-name"><span class="perf-dot" style="background:var(--yellow);"></span>Retro Palette</div>
+<div class="effect-desc-text">Forces the sprite to only use colors from a specific limited palette (GameBoy, NES, etc.), with optional dithering.</div>
+</div></div>
+    </div>
+</section>
+
+<!-- INSPECTOR -->
+<section class="section" id="inspector">
+    <h2>Inspector 🔧</h2>
+    <div class="section-line"></div>
+    <p>The custom inspector auto-generates UI for all 128 effects from the central registry. No manual wiring — if it's in the registry, it shows up.</p>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="fc-icon" style="background:var(--accent-glow); color:var(--accent);">🔍</div>
+            <h5>Search</h5>
+            <p>Type any effect name, keyword, or category to instantly filter the list down.</p>
+        </div>
+        <div class="feature-card">
+            <div class="fc-icon" style="background:var(--green-soft); color:var(--green);">●</div>
+            <h5>Perf Dots</h5>
+            <p>Green / yellow / red dot next to every effect shows its GPU cost at a glance.</p>
+        </div>
+        <div class="feature-card">
+            <div class="fc-icon" style="background:var(--yellow-soft); color:var(--yellow);">♫</div>
+            <h5>Keyframe Buttons</h5>
+            <p>Click ♫ next to any float, color, or vector to open the one-click keyframe editor.</p>
+        </div>
+        <div class="feature-card">
+            <div class="fc-icon" style="background:rgba(196,155,255,0.12); color:var(--purple);">C#</div>
+            <h5>Code Gen</h5>
+            <p>Click C# on any effect (or the global button) to copy ready-to-paste setup code to your clipboard.</p>
+        </div>
+        <div class="feature-card">
+            <div class="fc-icon" style="background:var(--red-soft); color:var(--red);">📋</div>
+            <h5>Copy / Paste / Reset</h5>
+            <p>Copy an effect's settings, paste them onto another sprite, or reset to defaults. Per-effect.</p>
+        </div>
+        <div class="feature-card">
+            <div class="fc-icon" style="background:var(--accent-glow); color:var(--accent);">👁</div>
+            <h5>Live Preview</h5>
+            <p>96px preview thumbnail next to each expanded effect updates in real-time as you tweak sliders.</p>
+        </div>
+    </div>
+
+    
+<div class="img-placeholder wide2">
+    <img src="2.png"></img>
+</div>
+
+    </div>
+</section>
+
+<!-- OUTLINE MODES -->
+<section class="section" id="outline-modes">
+    <h2>Outline Modes &amp; SDF ◻</h2>
+    <div class="section-line"></div>
+    <p>All outline and edge effects share a configurable sampling mode. Pick the one that fits your quality/performance needs.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Mode</th><th>How It Works</th><th>Best For</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Classic 3×3</strong> <span class="perf light">● Fast</span></td><td>Samples 8 neighbors at the given size. Simple and cheap.</td><td>Low-res sprites, mobile, large batches.</td></tr>
+                <tr><td><strong>Multi-Ring</strong> <span class="perf moderate">● Moderate</span></td><td>Samples 8 directions × N rings for smoother, rounder outlines.</td><td>Mid-res sprites, configurable quality via ring count.</td></tr>
+                <tr><td><strong>SDF</strong> <span class="perf light">● Fast</span></td><td>Pre-baked signed distance field. Single texture sample per pixel. Smooth at any width.</td><td>High-quality outlines, glow, any resolution. Best visual quality.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3>SDF Baking</h3>
+    <p>Click <strong>Bake SDF Texture</strong> in the Edge Effects section to generate a float-precision signed distance field from your sprite. The bake uses the Jump Flood Algorithm and produces a 32-bit float <code>.exr</code> texture — 0.5 = sprite edge, above 0.5 = inside, below 0.5 = outside.</p>
+
+    <div class="callout info">
+        <span class="ci">ℹ️</span>
+        <div>The <strong>Alpha Threshold</strong> slider controls which pixels count as "solid" during baking. Lower values (0.01) include semi-transparent edges. Higher values (0.5) only count fully opaque pixels.</div>
+    </div>
+
+    <div class="callout warn">
+        <span class="ci">⚠️</span>
+        <div>Set your sprite's <strong>Mesh Type</strong> to <code>Full Rect</code> so outlines can extend beyond the sprite bounds. Tight meshes will clip SDF outlines.</div>
+    </div>
+</section>
+
+<!-- TOOLS -->
+<section class="section" id="tools">
+    <h2>Tools 🛠</h2>
+    <div class="section-line"></div>
+    <p>Quick actions right from the inspector — no digging through menus.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Tool</th><th>What it does</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Deactivate All</strong></td><td>Turns off every effect at once. Clean slate.</td></tr>
+                <tr><td><strong>Apply Children</strong></td><td>Copies the shared material to all child renderers.</td></tr>
+                <tr><td><strong>Atlas Setup</strong></td><td>Reads sprite UV bounds from the atlas so edge effects stay within bounds.</td></tr>
+                <tr><td><strong>Bake PNG</strong></td><td>Renders the sprite with all active effects into a PNG (1×, 2×, or 4× resolution).</td></tr>
+                <tr><td><strong>Bake SDF</strong></td><td>Generates a signed distance field texture (32-bit float EXR) for SDF outline mode.</td></tr>
+                <tr><td><strong>Pack Masks</strong></td><td>Combines up to 4 grayscale masks into a single RGBA texture.</td></tr>
+                <tr><td><strong>Setup Animator</strong></td><td>Adds an Animator component and opens the Animation window.</td></tr>
+                <tr><td><strong>Save / Load Preset</strong></td><td>Save all effect settings as a ScriptableObject. Load it onto any other sprite.</td></tr>
+                <tr><td><strong>Copy All Active (C#)</strong></td><td>Generates and copies C# code for every currently enabled effect's settings.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- MASKS -->
+<section class="section" id="masks">
+    <h2>Effect Masks 🎭</h2>
+    <div class="section-line"></div>
+    <p>Assign up to 4 grayscale textures as mask channels (R, G, B, A). They auto-pack into a single RGBA texture. Each effect can target a specific channel through the colored buttons below its parameters.</p>
+
+    <div class="callout info">
+        <span class="ci">ℹ️</span>
+        <div>Masks auto-pack when you assign or remove a texture. The result is stored as <code>packedMasks</code> and sent to the shader as a single sample. There's also a global <strong>Effect Mask</strong> texture that affects all effects at once.</div>
+    </div>
+</section>
+
+<!-- GLOBAL -->
+<section class="section" id="global">
+    <h2>Global Settings 🌐</h2>
+    <div class="section-line"></div>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Setting</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Effect Fade</strong></td><td>Master fade for all effects (0 = none, 1 = full).</td></tr>
+                <tr><td><strong>Edge Cleanup</strong></td><td>Snaps semi-transparent edge pixels to fully opaque or transparent. Kills dirty edges on pixel art.</td></tr>
+                <tr><td><strong>Alpha Cutoff</strong></td><td>Hard alpha threshold for transparency. Pixels below the cutoff become invisible.</td></tr>
+                <tr><td><strong>Effect Mask</strong></td><td>Global mask texture affecting all effects simultaneously.</td></tr>
+                <tr><td><strong>Pixel Art Snap</strong></td><td>Snaps effect coordinates to a pixel grid — preserves crispness on low-res sprites.</td></tr>
+                <tr><td><strong>Premultiplied Alpha</strong></td><td>Premultiplies RGB by alpha in the final output. Required by some blend modes and Canvas UI.</td></tr>
+                <tr><td><strong>Flip X / Flip Y</strong></td><td>Mirrors the UV space. Auto-Detect button reads the SpriteRenderer's flip state.</td></tr>
+                <tr><td><strong>Time Scale</strong></td><td>Speed multiplier for all animated effects.</td></tr>
+                <tr><td><strong>Time FPS</strong></td><td>Caps animation to a specific frame rate (0 = unlimited). Great for retro looks.</td></tr>
+                <tr><td><strong>Custom Time</strong></td><td>Replace Unity time with a manual value. Useful for pausing or scrubbing effects.</td></tr>
+                <tr><td><strong>UV Expand</strong></td><td>Expands the vertex quad outward so edge effects like outlines and glow render outside sprite bounds.</td></tr>
+                <tr><td><strong>Stencil Buffer</strong></td><td>Full stencil control: ref, compare, pass, read/write masks. Useful for X-Ray Silhouette setups.</td></tr>
+                <tr><td><strong>Shadows</strong></td><td>Cast/receive shadows and shadow alpha clip threshold (3D Lit variants only).</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- PERFORMANCE -->
+<section class="section" id="performance">
+    <h2>Performance ⚡</h2>
+    <div class="section-line"></div>
+    <p>Every effect has a performance class shown as a colored dot in the inspector.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Level</th><th>Meaning</th><th>Examples</th></tr></thead>
+            <tbody>
+                <tr><td><span class="perf light">● Lightweight</span></td><td>Small math ops, no texture lookups</td><td>Strong Tint, Hit Effect, Negative, Brightness, Flicker</td></tr>
+                <tr><td><span class="perf moderate">● Moderate</span></td><td>A couple of cheap texture samples</td><td>Outline, UV Distort, Chromatic, Dissolve, Shine</td></tr>
+                <tr><td><span class="perf heavy">● Heavy</span></td><td>Multiple samples + heavy math</td><td>Bloom, Gaussian Blur, Soft Shadow, Ghosting, Motion Smear</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout tip">
+        <span class="ci">⚡</span>
+        <div>Disabled effects cost exactly zero. The shader uses <code>shader_feature_local</code> — Unity's compiler strips unused variants at build time. For maximum mobile performance, stick to green-dot effects and use <strong>Bake PNG</strong> to flatten complex setups into a single texture.</div>
+    </div>
+
+    <h3>Sampler Packing</h3>
+    <p>20 effect textures share 8 samplers to stay within mobile/DX11/OpenGL limits. Effects with similar sampling needs (linear clamp vs. linear repeat) are grouped onto shared samplers. You don't need to configure anything — it's automatic.</p>
+</section>
+
+<!-- ANIMATION SYSTEM -->
+<section class="section" id="animation-system">
+    <h2>Animation System ♫</h2>
+    <div class="section-line"></div>
+    <p>Every property is animatable through Unity's Animation window. The built-in keyframe editor generates curves without touching the timeline manually.</p>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="fc-icon" style="background:var(--accent-glow); color:var(--accent);">♫</div>
+            <h5>One-Click Keyframes</h5>
+            <p>Click ♫ next to any property to open the editor with From / Mid / To values and easing curves.</p>
+        </div>
+        <div class="feature-card">
+            <div class="fc-icon" style="background:var(--green-soft); color:var(--green);">↔</div>
+            <h5>Mid-Point Curves</h5>
+            <p>Toggle mid-point for smooth loops (dim → bright → dim). Two-segment curve with independent easing.</p>
+        </div>
+        <div class="feature-card">
+            <div class="fc-icon" style="background:var(--yellow-soft); color:var(--yellow);">📂</div>
+            <h5>Clip Picker</h5>
+            <p>Add curves to any AnimationClip from a dropdown, or target the currently active clip in the Animation window.</p>
+        </div>
+    </div>
+</section>
+
+<!-- KEYFRAME EDITOR -->
+<section class="section" id="keyframe-editor">
+    <h3>Keyframe Editor 🎹</h3>
+    <p>Click ♫ next to any float, color, or vector property to open it.</p>
+
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Field</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><strong>From / Mid / To</strong></td><td>Start, optional midpoint, and end values. Mid creates a smooth two-segment loop.</td></tr>
+                <tr><td><strong>Duration</strong></td><td>0.05 – 10 seconds.</td></tr>
+                <tr><td><strong>Easing</strong></td><td>Linear, Ease In, Ease Out, Ease In-Out, Bounce, Elastic.</td></tr>
+                <tr><td><strong>Bake FPS</strong></td><td>Keyframes per second baked into the curve (12 – 60).</td></tr>
+                <tr><td><strong>Loop / Ping Pong</strong></td><td>Whether the clip loops and bounces (from→to→from).</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ANIMATION BROWSER -->
+<section class="section" id="animation-browser">
+    <h3>Animation Browser 📂</h3>
+    <p>In the Tools section — shows all clips in the Animator Controller, lists animated shader properties with their value ranges. Click <strong>Open</strong> to jump to that clip in the Animation window.</p>
+</section>
+
+<!-- SCRIPTING API -->
+<section class="section" id="scripting-api">
+    <h2>C# Scripting API { }</h2>
+    <div class="section-line"></div>
+    <p>Every effect can be enabled, configured, and animated from code. All public fields on <code>AnimatedSpriteShader</code> are yours to set.</p>
+
+    <h3>Enable / Disable</h3>
+    <div class="code-block">
+        <div class="code-block-header">C#</div>
+<pre><span class="kw">var</span> mgr = GetComponent&lt;<span class="tp">AnimatedSpriteShader</span>&gt;();
+
+mgr.outlineEnabled = <span class="kw">true</span>;
+mgr.outlineColor = <span class="tp">Color</span>.cyan;
+mgr.outlineSize = <span class="num">0.02f</span>;
+
+mgr.dissolveEnabled = <span class="kw">true</span>;
+mgr.dissolveAmount = <span class="num">0.5f</span>;
+
+mgr.MarkDirty();  <span class="cm">// always call after changing values from code</span></pre>
+    </div>
+
+    <h3>Switch Shader Variant</h3>
+    <div class="code-block">
+        <div class="code-block-header">C#</div>
+<pre>mgr.ChangeShaderVariant(<span class="tp">AnimatedSpriteShader</span>.<span class="tp">ShaderVariant</span>.Lit2D_URP);</pre>
+    </div>
+
+    <h3>Incremental Push</h3>
+    <div class="code-block">
+        <div class="code-block-header">C#</div>
+<pre><span class="cm">// Mark only what changed — avoids pushing all 128 effects every frame</span>
+mgr.MarkEffectDirty(<span class="tp">EffectId</span>.Dissolve);
+mgr.MarkGlobalsDirty();
+mgr.IncrementalPush();  <span class="cm">// pushes only dirty groups to the GPU</span></pre>
+    </div>
+
+    <div class="callout info">
+        <span class="ci">ℹ️</span>
+        <div><code>MarkDirty()</code> marks everything dirty and pushes on the next <code>LateUpdate</code>. For tighter control, use <code>MarkEffectDirty(id)</code> + <code>IncrementalPush()</code> to only push the groups that actually changed.</div>
+    </div>
+</section>
+
+<!-- COMBO EXAMPLES -->
+<section class="section" id="combo-examples">
+    <h3>Combo Examples 🎨</h3>
+
+    <div class="code-block">
+        <div class="code-block-header">C# — Frozen enemy that shatters</div>
+<pre>mgr.frozenEnabled = <span class="kw">true</span>;
+mgr.frozenContrast = <span class="num">2f</span>;
+mgr.frozenHighlight = <span class="num">1.5f</span>;
+mgr.outlineEnabled = <span class="kw">true</span>;
+mgr.outlineColor = <span class="kw">new</span> <span class="tp">Color</span>(<span class="num">0.5f</span>, <span class="num">0.85f</span>, <span class="num">1f</span>);
+mgr.outlineSize = <span class="num">0.015f</span>;
+mgr.hexDissolveEnabled = <span class="kw">true</span>;
+mgr.hexDissolveAmount = <span class="num">0f</span>; <span class="cm">// animate 0→1 to shatter</span>
+mgr.MarkDirty();</pre>
+    </div>
+
+    <div class="code-block">
+        <div class="code-block-header">C# — Holographic card with shine</div>
+<pre>mgr.holographicCardEnabled = <span class="kw">true</span>;
+mgr.shineEnabled = <span class="kw">true</span>;
+mgr.shineWidth = <span class="num">0.15f</span>;
+mgr.shineGlow = <span class="num">2f</span>;
+mgr.outlineEnabled = <span class="kw">true</span>;
+mgr.outlineColor = <span class="tp">Color</span>.white;
+mgr.outlineSize = <span class="num">0.008f</span>;
+mgr.MarkDirty();</pre>
+    </div>
+
+    <div class="code-block">
+        <div class="code-block-header">C# — Damage flash with screen shake vibe</div>
+<pre>mgr.hitEffectEnabled = <span class="kw">true</span>;
+mgr.hitEffectColor = <span class="tp">Color</span>.white;
+mgr.hitEffectBlend = <span class="num">1f</span>;
+mgr.wiggleEnabled = <span class="kw">true</span>;
+mgr.wiggleAmount = <span class="num">0.05f</span>;
+mgr.wiggleFrequency = <span class="num">25f</span>;
+mgr.MarkDirty();
+<span class="cm">// Then lerp hitEffectBlend and wiggleAmount back to 0 over ~0.15s</span></pre>
+    </div>
+</section>
+
+<!-- PRESETS -->
+<section class="section" id="presets">
+    <h3>Effect Presets 💾</h3>
+    <p>Save any sprite's complete effect setup as a <code>ScriptableObject</code> and load it onto other sprites. The preset stores every enabled effect plus all its parameters.</p>
+
+    <div class="code-block">
+        <div class="code-block-header">C# — Load a preset at runtime</div>
+<pre><span class="kw">var</span> preset = Resources.Load&lt;<span class="tp">AnimSpriteEffectPreset</span>&gt;(<span class="str">"MyPreset"</span>);
+preset.ApplyTo(mgr);
+mgr.MarkDirty();</pre>
+    </div>
+</section>
+
+<!-- TECHNICAL -->
+<section class="section" id="technical-deep-dive">
+    <h2>Architecture 🧠</h2>
+    <div class="section-line"></div>
+    <p>Understanding how the pieces fit together helps when extending the system or debugging edge cases.</p>
+
+    <div class="arch-flow">
+        <div class="arch-box">
+            <span class="arch-tag cs">C#</span>
+            <h5>EffectRegistry.cs</h5>
+            <p>Static array of <code>EffectDef</code> structs. The single source of truth — maps each effect's ID, keyword, C# field name, shader property name, category, group, and parameter metadata.</p>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box">
+            <span class="arch-tag cs">C#</span>
+            <h5>AnimatedSpriteShader.cs</h5>
+            <p>Runtime MonoBehaviour. Holds all 128 effect fields. Pushes values to the GPU via <code>MaterialPropertyBlock</code>. Handles SDF baking, atlas setup, variant switching, and incremental dirty tracking.</p>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box">
+            <span class="arch-tag editor">Editor</span>
+            <h5>AnimatedSpriteShaderEditor.cs</h5>
+            <p>Custom inspector. Reads the registry to auto-generate UI: categories, search, perf dots, sliders, keyframe buttons, code-gen, copy/paste, and live previews.</p>
+        </div>
+    </div>
+    <div class="arch-flow">
+        <div class="arch-box">
+            <span class="arch-tag hlsl">HLSL</span>
+            <h5>AllInOneProperties.hlsl</h5>
+            <p>Declares every shader property, texture sampler, and <code>_En</code> toggle float. 20 textures share 8 samplers via aliasing. Shared across all 17 variants.</p>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box">
+            <span class="arch-tag hlsl">HLSL</span>
+            <h5>AllInOneKeywords.hlsl</h5>
+            <p>All <code>shader_feature_local</code> pragmas. One keyword per effect — Unity strips unused ones at build time, so disabled effects cost exactly zero.</p>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box">
+            <span class="arch-tag hlsl">HLSL</span>
+            <h5>AllInOneEffects.hlsl</h5>
+            <p>The effect pipeline. Functions organized as: UV → Color → Edge → Dissolve → VFX → Gameplay. Each wrapped in <code>#ifdef</code> blocks.</p>
+        </div>
+    </div>
+    <div class="arch-flow">
+        <div class="arch-box">
+            <span class="arch-tag editor">Editor</span>
+            <h5>AnimSpriteMasterSetup.cs</h5>
+            <p>Editor window for project-wide settings: active pipeline, shader patching, keyword mode, effect group ordering, and pipeline migration tools.</p>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box">
+            <span class="arch-tag cs">C#</span>
+            <h5>AnimSpriteProjectSettings.cs</h5>
+            <p>ScriptableObject singleton storing the active pipeline, group render order, and per-group effect ordering. Shared between Master Setup and the editor.</p>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box">
+            <span class="arch-tag cs">C#</span>
+            <h5>ShaderPropertyAnimator.cs</h5>
+            <p>Drives the ♫ keyframe editor. Bakes AnimationCurves with configurable easing, mid-points, and ping-pong loops. Writes directly to AnimationClips.</p>
+        </div>
+    </div>
+</section>
+
+<!-- SHADER INTERNALS -->
+<section class="section" id="shader-internals">
+    <h3>Shader Internals ⚙</h3>
+    <p>The fragment shader processes effects in a strict order inside the dispatch groups:</p>
+
+    <div class="code-block">
+        <div class="code-block-header">Simplified Pipeline — AllInOneEffects.hlsl</div>
+<pre><span class="cm">// 1. UV effects (wave, twist, distort, pixelate, scroll…)</span>
+uv = ApplyUVGroup(uv, time, worldPos);
+
+<span class="cm">// 2. Sample main texture + edge cleanup</span>
+half4 col = STEX(_MainTex, sampler_MainTex, uv);
+
+<span class="cm">// 3. Filter effects (sharpen, blur, flipbook blend…)</span>
+col = ApplyFilterGroup(col, uv, time);
+
+<span class="cm">// 4. Color effects (tint, bloom, hue, posterize…)</span>
+col = ApplyColorGroup(col, uv, time, worldPos);
+
+<span class="cm">// 5. Extended color (gradient, radial gradient, color ramp…)</span>
+col = ApplyColorExtGroup(col, uv, time);
+
+<span class="cm">// 6. Edge effects (outline, glow, shadow, rim…)</span>
+col = ApplyEdgeGroup(col, uv, time, masks);
+
+<span class="cm">// 7. Dissolve effects (fade, wipe, dissolve…)</span>
+col = ApplyDissolveGroup(col, uv, time, masks);
+
+<span class="cm">// 8. VFX effects (hologram, glitch, shine, flame…)</span>
+col = ApplyVFXGroup(col, uv, time, masks);
+
+<span class="cm">// 9. Gameplay effects (health tint, x-ray, trails…)</span>
+col = ApplyGameGroup(col, uv, time, masks);</pre>
+    </div>
+
+    <p>Each effect block checks its <code>_En</code> float, optionally samples the effect mask, computes the effect, and composites via <code>lerp</code> or alpha blending. The order within each group is configurable through Master Setup.</p>
+</section>
+
+<!-- SDF PIPELINE -->
+<section class="section" id="sdf-system">
+    <h3>SDF Pipeline ◈</h3>
+    <p>The SDF system uses a signed distance field for outline and glow rendering. Here's how it works end-to-end.</p>
+
+    <h4>Bake Process (C#)</h4>
+    <p><code>BakeOutlineSDF()</code> reads the sprite's texture rect, pads it by a configurable amount (default 16px), and computes inner + outer distance fields using the <strong>Jump Flood Algorithm</strong>. The result is a signed distance normalized into [0, 1]:</p>
+
+    <div class="code-block">
+        <div class="code-block-header">SDF normalization</div>
+<pre>signedDist = isSolid ? -innerDist : outerDist;
+normalized = <span class="num">0.5</span> - signedDist / (<span class="num">2</span> * spread);</pre>
+    </div>
+
+    <p>Output is a 32-bit float <code>RFloat</code> texture saved as <code>.exr</code> — smooth gradients without banding. The <code>spread</code> value is stored on the component and pushed to the shader as <code>_OutlineSDFSpread</code>.</p>
+
+    <h4>Outline Band Extraction (Shader)</h4>
+    <p>The outline is carved from two one-sided smoothsteps to prevent overlap at small widths:</p>
+
+    <div class="code-block">
+        <div class="code-block-header">HLSL — Outline from SDF</div>
+<pre>sdfWidth = sizePx / (spread * <span class="num">2</span>);
+outerEdge = <span class="num">0.5</span> - sdfWidth;
+outer = smoothstep(outerEdge - softness, outerEdge, sdf);
+inner = smoothstep(<span class="num">0.5</span>, <span class="num">0.5</span> + softness, sdf);
+outline = outer * (<span class="num">1.0</span> - inner);</pre>
+    </div>
+
+    <p>This avoids the classic "surge at zero width" bug where symmetric smoothsteps overlap at their tails.</p>
+</section>
+
+<!-- CUSTOM EFFECTS -->
+<section class="section" id="custom-effects">
+    <h2>Adding a Custom Effect ➕</h2>
+    <div class="section-line"></div>
+    <p>The system is designed to be extended. Add your own effects following this pattern:</p>
+
+    <ol class="steps">
+        <li class="step">
+            <div class="step-content">
+                <h4>Write the Shader Code</h4>
+                <p>Add your effect function in <code>AllInOneEffects.hlsl</code> inside a <code>#ifdef YOUR_KEYWORD</code> block. Declare properties in <code>AllInOneProperties.hlsl</code> (both CBUFFER paths) and the keyword in <code>AllInOneKeywords.hlsl</code>.</p>
+            </div>
+        </li>
+        <li class="step">
+            <div class="step-content">
+                <h4>Register in EffectRegistry</h4>
+                <p>Add a new entry to the <code>All</code> array using <code>M()</code> or <code>MG()</code>. Define EffectId, name, keyword, enable field, category, group, and parameters.</p>
+            </div>
+        </li>
+        <li class="step">
+            <div class="step-content">
+                <h4>Add C# Fields</h4>
+                <p>Add matching public fields to <code>AnimatedSpriteShader.cs</code> — the enable bool plus any parameters. Field names must match the registry exactly.</p>
+            </div>
+        </li>
+        <li class="step">
+            <div class="step-content">
+                <h4>Wire up Push()</h4>
+                <p>In <code>Push()</code>, add the keyword toggle and property block calls. Follow the pattern of existing effects.</p>
+            </div>
+        </li>
+    </ol>
+
+    <div class="code-block">
+        <div class="code-block-header">EffectRegistry.cs — example entry</div>
+<pre>M(<span class="tp">EffectId</span>.MyEffect, <span class="str">"My Effect"</span>, <span class="str">"_MYEFFECT_ON"</span>,
+    <span class="str">"myEffectEnabled"</span>, <span class="str">"_MyEffect_En"</span>, <span class="tp">EffectCategory</span>.Special,
+    <span class="str">"myEffectMaskCh"</span>, <span class="str">"_MyEffectMaskCh"</span>,
+    F(<span class="str">"myEffectAmount"</span>, <span class="str">"_MyEffectAmount"</span>, <span class="str">"Amount"</span>, <span class="num">0</span>, <span class="num">1</span>, <span class="str">"0.5"</span>),
+    C(<span class="str">"myEffectColor"</span>, <span class="str">"_MyEffectColor"</span>, <span class="str">"Color"</span>)),</pre>
+    </div>
+
+    <div class="callout info">
+        <span class="ci">ℹ️</span>
+        <div>Once registered, the inspector, animation system, code generator, presets, copy/paste, and the showcase carousel all discover your effect automatically. No extra wiring.</div>
+    </div>
+</section>
+
+<!-- BATCHING -->
+<section class="section" id="batching">
+    <h2>Batching &amp; MaterialPropertyBlock 📊</h2>
+    <div class="section-line"></div>
+    <p>One shared material per shader variant. Per-instance values go through <code>MaterialPropertyBlock</code> — no batch breaks for parameter changes.</p>
+
+    <p><strong>Batches together:</strong> same variant + same enabled effects (same keyword set).</p>
+    <p><strong>Doesn't break batches:</strong> different colors, amounts, intensities, textures in the property block.</p>
+    <p><strong>Breaks batches:</strong> different variants or different sets of enabled effects.</p>
+
+    <div class="callout tip">
+        <span class="ci">💡</span>
+        <div>For max batching, enable the same effects on grouped sprites and set unused parameters to zero instead of disabling. Keeps the keyword set identical across all instances.</div>
+    </div>
+</section>
+
+<!-- SUPPORT -->
+<section class="section" id="support">
+    <h2>Support &amp; Effect Requests 💬</h2>
+    <div class="section-line"></div>
+    <p>Got an idea for a new effect? Found a bug? Need help?</p>
+
+    <div class="features-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="feature-card" style="text-align:center; padding: 32px;">
+            <div style="font-size: 32px; margin-bottom: 10px;">💬</div>
+            <h5>Discord Community</h5>
+            <p style="margin: 8px 0 16px;">Quick help, effect requests, showing off what you've built, and chatting with other users.</p>
+            <a href="https://discord.gg/bHNQtaFvPQ" target="_blank" class="btn-primary" style="font-size:13px; padding: 10px 24px;">Join the Discord</a>
+        </div>
+        <div class="feature-card" style="text-align:center; padding: 32px;">
+            <div style="font-size: 32px; margin-bottom: 10px;">✉️</div>
+            <h5>Email </h5>
+            <p style="margin: 8px 0 16px;">For private issues, business, offers</p>
+     
+        </div>
+    </div>
+
+    <h3>🎯 Requesting a New Effect</h3>
+    <p>We actively build effects based on community requests. When describing what you want, it helps to include:</p>
+    <div style="margin: 14px 0;">
+        <p style="padding: 4px 0;">→ &nbsp;A description or reference image / video of the effect</p>
+        <p style="padding: 4px 0;">→ &nbsp;What you'd use it for (combat, transitions, environment, UI…)</p>
+        <p style="padding: 4px 0;">→ &nbsp;Whether it needs to be animatable, maskable, or pipeline-specific</p>
+    </div>
+    <p>Popular requests get prioritized in upcoming updates.</p>
+
+    <div class="callout tip">
+        <span class="ci">🐛</span>
+        <div>Found a bug? Include your <strong>Unity version</strong>, <strong>render pipeline</strong>, <strong>shader variant</strong>, and a <strong>screenshot of the inspector</strong>. Helps us fix it way faster.</div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+    <h2>FAQ ❓</h2>
+    <div class="section-line"></div>
+
+    <h4>My sprite turns pink / magenta</h4>
+    <p>Shader variant doesn't match your render pipeline. Switch to the right one in the dropdown, or use Master Setup → Pipeline Migration to batch-fix all sprites.</p>
+
+    <h4>Outline / glow bleeds into atlas neighbors</h4>
+    <p>Click <strong>Atlas Setup</strong> in Tools. It writes UV bounds so edge effects stay inside your sprite's region.</p>
+
+    <h4>SDF outline is clipped at sprite edges</h4>
+    <p>Set your sprite's <strong>Mesh Type</strong> to <code>Full Rect</code> in the import settings. Tight meshes clip anything outside the silhouette.</p>
+
+    <h4>SDF outline looks wrong after re-importing a sprite</h4>
+    <p>Re-bake the SDF. The distance field is computed from the texture — if the sprite changes, the SDF needs regenerating.</p>
+
+    <h4>Effects don't update in play mode</h4>
+    <p>Call <code>MarkDirty()</code> after changing values from code. In the editor, changes push automatically.</p>
+
+    <h4>Works with Spine / 2D Animation?</h4>
+    <p>Yes. Color effects work on skeletal sprites out of the box. Edge effects apply per sub-sprite mesh.</p>
+
+    <h4>How many effects can I stack?</h4>
+    <p>No hard limit. Unity 2021.2+ supports 65,534 local keywords. Stack as many as you want.</p>
+
+    <h4>Works with UI / Canvas?</h4>
+    <p>Yes — use the <code>GUI</code>, <code>GUI Additive</code>, <code>GUI Premultiply</code>, or <code>Screen Space Overlay</code> variants.</p>
+
+    <h4>Mobile performance?</h4>
+    <p>Disabled effects = zero cost. On mobile, stick to green-dot (lightweight) effects. Use Bake PNG for complex setups — renders everything into a flat texture at export time.</p>
+
+    <h4>How does batching work?</h4>
+    <p>One shared material per variant. Per-instance data goes through <code>MaterialPropertyBlock</code>. Sprites with the same variant and same enabled effects batch together. Different parameter values (colors, amounts) don't break batches.</p>
+</section>
+
+<!-- REVIEW -->
+<section class="section" id="review">
+    <div class="review-cta">
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <h3>Enjoying the Asset?</h3>
+        <p>Your review helps other devs find FlexiSprite and keeps us motivated to add more effects. Thank you! 🍃</p>
+        <a href="https://assetstore.unity.com/packages/vfx/shaders/sprite-shaders-animated-2d-000000#reviews" class="btn-primary" target="_blank" style="font-size:15px; padding: 14px 32px;">
+            ⭐&nbsp;&nbsp;Leave a Review on the Asset Store
+        </a>
+        <p style="margin-top: 18px; font-size: 13px; color: var(--text-muted);">
+            Need help instead? <a href="https://discord.gg/bHNQtaFvPQ" target="_blank">Discord</a>
+        </p>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<div style="text-align: center; padding: 44px 0; border-top: 1px solid var(--border-subtle); margin-top: 44px;">
+    <p style="font-size: 18px; margin-bottom: 6px;">🍃</p>
+    <p style="font-size: 13px; color: var(--text-muted); font-weight: 600;">
+        FlexiSprite: Animated Sprite Shaders 2D &nbsp;·&nbsp; by <a href="https://assetstore.unity.com/publishers/72230" target="_blank">Leafo Studio</a>
+    </p>
+    <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+        Unity 2021.3+ &nbsp;·&nbsp; Built-in / URP / HDRP
+    </p>
+</div>
+
+</main>
+
+<!-- SCROLL SPY -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var links = document.querySelectorAll('.sidebar-link');
+    var sections = [];
+    links.forEach(function(l) {
+        var h = l.getAttribute('href');
+        if (h && h.startsWith('#')) {
+            var el = document.querySelector(h);
+            if (el) sections.push({ el: el, link: l });
+        }
+    });
+    function upd() {
+        var sy = window.scrollY + 100;
+        var cur = null;
+        for (var i = sections.length - 1; i >= 0; i--)
+            if (sections[i].el.offsetTop <= sy) { cur = sections[i]; break; }
+        links.forEach(function(l) { l.classList.remove('active'); });
+        if (cur) cur.link.classList.add('active');
+    }
+    window.addEventListener('scroll', upd);
+    upd();
+});
+</script>
+</body>
+</html>
